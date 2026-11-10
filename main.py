@@ -13,3 +13,17 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+"""
+Sentinel Security - Main Application
+Version: 0.3.1
+
+This file serves as the main entry point for Sentinel Security.
+It initializes the application and allows users to select files
+for security scanning. It connects the user interface with the
+file scanning engine to display analysis results.
+
+Future updates will introduce URL scanning and a graphical
+user interface (GUI).
+"""

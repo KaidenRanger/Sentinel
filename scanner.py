@@ -53,3 +53,19 @@ def scan_file(file_path):
             print("STATUS: No known threats detected")
 
     print("==============================\n")
+
+
+"""
+Sentinel Security - File Scanning Engine
+Version: 0.3.1
+
+This module handles Sentinel's file analysis functionality.
+It calculates SHA-256 hashes, collects basic file information,
+and compares file hashes against a local threat database.
+
+Files matching known threat signatures are flagged for review.
+A file without a matching hash is not necessarily safe.
+
+Future updates will include advanced malware detection,
+file signature analysis, and threat intelligence integration.
+"""

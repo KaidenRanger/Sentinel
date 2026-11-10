@@ -16,3 +16,14 @@ __pycache__/
 
 # Temporary files
 *.log
+
+
+# Sentinel Security - Git Exclusion Rules
+#
+# This file specifies which files and directories Git should
+# ignore when tracking changes and uploading code to GitHub.
+# It prevents temporary files, virtual environments, and
+# sensitive configuration files from being committed.
+#
+# These rules help keep the repository clean and reduce
+# the risk of accidentally exposing private information.
