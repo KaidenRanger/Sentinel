@@ -1,3 +1,10 @@
+"""
+Sentinel Security - File Scanner Tests
+Version: 0.5.0
+
+Automated tests for local file hash scanning.
+"""
+
 import unittest
 from unittest.mock import patch
 
@@ -46,20 +53,3 @@ class TestSentinelScanner(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-    
-    
-    
-    
-    """
-Sentinel Security - Automated Scanner Tests
-Version: 0.3.1
-
-This module contains automated tests for Sentinel's malware
-hash detection system.
-
-It verifies that known threat hashes are correctly identified
-and that unknown hashes return no match.
-
-The tests use simulated threat database entries, allowing
-the detection logic to be tested without real malware.
-"""

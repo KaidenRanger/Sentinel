@@ -1,173 +1,176 @@
-Sentinel Security
 
-A Python-Based File and URL Threat Detection Project
+# Sentinel Security
 
-About the Project
+**Version:** 0.5.0 (Release Candidate)
 
-Sentinel Security is a Python-based cybersecurity application being developed as a personal portfolio project to explore malware detection, file analysis, URL security, and threat intelligence.
+Sentinel Security is a Python-based command-line cybersecurity tool designed to analyze files and URLs for potential security threats.
 
-The goal is to build a desktop security tool capable of analyzing files and URLs for potential threats.
+The project demonstrates file hashing, static URL analysis, threat intelligence integration, error handling, and automated testing.
 
-This project combines cybersecurity principles with software engineering practices, including modular programming, error handling, automated testing, and version control.
+## Features
 
-Current Features
+### 1. File Scanning
+- Calculates SHA-256 hashes of files.
+- Compares hashes against a local JSON threat database.
+- Identifies files matching known malicious hashes.
+- Handles invalid file paths.
+- Performs local analysis without uploading files.
 
-File Scanner
+### 2. URL Scanning
+- Validates HTTP and HTTPS URLs.
+- Detects unencrypted HTTP connections.
+- Flags IP addresses used as hostnames.
+- Identifies URLs containing user information.
+- Detects unusually long URLs.
+- Flags Punycode domains.
+- Validates hostname structure and DNS label formatting.
+- Rejects malformed URLs.
 
-SHA-256 file hashing
+URL scanning is static and does not visit the target website.
 
-File name and size analysis
+### 3. VirusTotal Threat Intelligence
+- Integrates with VirusTotal API v3.
+- Retrieves existing URL reputation reports.
+- Displays malicious, suspicious, harmless, and undetected counts.
+- Requests user permission before each lookup.
+- Handles missing API keys, unavailable reports, rate limits, and network errors.
 
-Local JSON malware hash database
+**Note:** Live API verification is pending. The integration has been tested with mocked API responses.
 
-Hash-based threat detection
+VirusTotal lookups require an API key and transmit URL information to VirusTotal. Avoid submitting private or sensitive URLs.
 
-File path validation and error handling
+The integration does not submit URLs for new scans.
 
-URL Scanner
+### 4. Automated Testing
+- Uses Python's built-in unittest framework.
+- Includes tests for file scanning, URL scanning, and threat intelligence.
+- Uses mocked network responses to test API behavior.
 
-HTTP and HTTPS URL parsing
+**Current status: 19 automated tests passing.**
 
-Basic URL validation
+## Requirements
 
-Detection of unencrypted HTTP links
+- Python 3.14 or a compatible Python 3 version
+- Internet access for optional VirusTotal lookups
+- VirusTotal API key for reputation lookups
 
-Identification of IP-based URLs
+The project uses Python's standard library and does not require additional Python packages.
 
-Detection of URLs containing user information (@ symbol)
+## Installation
 
-Detection of unusually long URLs
+Clone the repository:
 
-Identification of Punycode domain names
-
-Basic phishing risk indicators
-
-The URL scanner performs static analysis without visiting websites or downloading content.
-
-Application Interface
-
-Interactive command-line menu
-
-File and URL scanning options
-
-Ability to perform multiple scans
-
-Error handling and exit functionality
-
-Automated Testing
-
-Unit tests using Python's unittest framework
-
-File scanner tests
-
-URL scanner tests
-
-9 automated tests passing as of version 0.4.0
-
-Technologies
-
-Python 3.14
-
-JSON
-
-Git and GitHub
-
-Python unittest framework
-
-Python standard library (hashlib, pathlib, urllib.parse, ipaddress)
-
-Getting Started
-
-Requirements
-
-Python 3.14
-
-Git (optional, for cloning the repository)
-
-Installation
-
-Clone the repository or download the project files.
-
-Open a terminal inside the Sentinel project directory.
+```bash
+git clone https://github.com/KaidenRanger/Sentinel.git
+cd Sentinel
+```
 
 Create a virtual environment:
 
-py -3.14 -m venv .venv
+```powershell
+python -m venv .venv
+```
 
-Activate the virtual environment in PowerShell:
+Activate it in PowerShell:
 
+```powershell
 .\.venv\Scripts\Activate.ps1
+```
 
-Run Sentinel Security:
+## Running Sentinel
 
+```powershell
 python main.py
+```
 
-Using Sentinel
+Main menu:
 
-After launching the application, select an option from the main menu:
+```text
+===== MAIN MENU =====
+1. Scan a File
+2. Scan a URL
+3. Exit Sentinel
+```
 
-Scan a File
+## Configuring VirusTotal
 
-Scan a URL
+Create a VirusTotal account and obtain an API key.
 
-Exit Sentinel
+In PowerShell, configure the key for the current terminal session:
 
-For file scanning, enter the path to a local file.
+```powershell
+$env:VT_API_KEY = Read-Host "Enter VirusTotal API key" -AsSecureString | ConvertFrom-SecureString -AsPlainText
+```
 
-For URL scanning, enter a complete URL beginning with http:// or https://.
+Do not commit API keys to GitHub or store them in source code.
 
-Sentinel will analyze the input and display its findings.
+The key must be configured again when starting a new terminal session.
 
-Running Automated Tests
+## Running Tests
 
-Run the complete test suite from the project directory:
+Run all automated tests:
 
+```powershell
 python -m unittest discover -v
+```
 
-The test suite checks file hash detection and URL security indicators.
+Expected result:
 
-Planned Features
+```text
+Ran 19 tests in ...
 
-Threat intelligence API integration
+OK
+```
 
-Graphical user interface (GUI)
+## Project Structure
 
-Advanced file analysis
+```text
+Sentinel/
+├── main.py
+├── scanner.py
+├── url_scanner.py
+├── threat_intel.py
+├── test_scanner.py
+├── test_url_scanner.py
+├── test_threat_intel.py
+├── hashes.json
+├── sentinel_test.txt
+├── .gitignore
+└── README.md
+```
 
-Scan history and reporting
+## Security Limitations
 
-Expanded URL security checks
+Sentinel is an educational cybersecurity project, not a replacement for professional antivirus or endpoint protection.
 
-Additional automated tests
+- A clean hash lookup does not prove a file is safe.
+- A URL without suspicious indicators may still be malicious.
+- VirusTotal detection counts do not guarantee safety.
+- VirusTotal reports may be unavailable or outdated.
+- Static URL analysis does not inspect website content.
 
-Project Status
+## Version History
 
-Current Version: 0.4.0 — File and URL Scanning
+### v0.5.0 - Threat Intelligence Integration (Release Candidate)
+- Added VirusTotal API v3 integration.
+- Added user consent before external lookups.
+- Added API error handling.
+- Improved URL validation.
+- Added explicit URL validation return values.
+- Expanded automated testing to 19 tests.
 
-Sentinel Security is under active development.
+### v0.4.0 - URL Scanner Improvements
+- Improved URL parsing and hostname validation.
+- Added phishing-related URL warning indicators.
+- Expanded URL scanning tests.
 
-Development Milestones
+## Planned Improvements
 
-v0.1.0: Initial project setup
+- Scan history
+- JSON scan reports
+- Improved threat reporting
+- Additional automated tests
 
-v0.2.0: File scanning and SHA-256 hashing
+## Disclaimer
 
-v0.3.x: File validation, error handling, and scanning improvements
-
-v0.4.0: URL scanning, interactive menu, and expanded automated testing
-
-Security Disclaimer
-
-Sentinel Security is an educational cybersecurity project and should not be used as a replacement for established antivirus or endpoint protection software.
-
-Hash-based detection identifies only files matching entries in the local database. Similarly, URL scanning identifies basic risk indicators but cannot guarantee that a website is safe.
-
-A result showing no known threats or risk indicators does not mean that a file or URL is harmless.
-
-Developer Notes
-
-This project is being developed as part of my independent learning in cybersecurity and computer science.
-
-Its purpose is to strengthen my understanding of threat detection, secure programming, Python development, software testing, and software engineering.
-
-Sentinel Security is an ongoing portfolio project, with additional security capabilities planned for future releases.
+Sentinel Security is intended for educational and authorized security analysis only.

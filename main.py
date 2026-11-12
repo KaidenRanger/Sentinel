@@ -1,13 +1,12 @@
 """
 Sentinel Security - Main Application
-Version: 0.4.0
+Version: 0.5.0
 
-This file is the main entry point for Sentinel Security.
-It provides a command-line menu for scanning local files
-and analyzing suspicious URLs.
+Command-line cybersecurity tool for file hash scanning,
+static URL analysis, and optional VirusTotal reputation lookups.
 
-Users can perform multiple scans or exit the application.
-Future updates will introduce a graphical interface.
+Provides an interactive menu and requests user permission
+before contacting VirusTotal.
 """
 
 
@@ -15,6 +14,7 @@ from pathlib import Path
 
 from scanner import scan_file
 from url_scanner import scan_url
+from threat_intel import check_url_reputation
 
 
 def main():
@@ -24,7 +24,7 @@ def main():
     print("       SENTINEL SECURITY        ")
     print("================================")
     print("File and URL Threat Scanner")
-    print("Version: 0.4.0")
+    print("Version: 0.5.0")
 
     while True:
         print("\n===== MAIN MENU =====")
@@ -60,7 +60,42 @@ def main():
             if url.lower() == "back":
                 continue
 
-            scan_url(url)
+            valid_url = scan_url(url)
+
+            if not valid_url:
+                continue
+
+            # Ask permission before contacting VirusTotal
+            permission = input(
+                "\nCheck this URL with VirusTotal? (y/n): "
+            ).strip().lower()
+
+            if permission in ("y", "yes"):
+                print("\nContacting VirusTotal...")
+
+                result = check_url_reputation(url)
+
+                if result["status"] == "success":
+                    print("\n===== VIRUSTOTAL REPORT =====")
+                    print(f"Malicious: {result['malicious']}")
+                    print(f"Suspicious: {result['suspicious']}")
+                    print(f"Harmless: {result['harmless']}")
+                    print(f"Undetected: {result['undetected']}")
+                    print("=============================")
+
+                    if result["malicious"] > 0:
+                        print("[WARNING] Malicious detections reported.")
+                    elif result["suspicious"] > 0:
+                        print("[WARNING] Suspicious detections reported.")
+                    else:
+                        print("No malicious detections in this report.")
+
+                else:
+                    print(f"\n[INFO] {result['message']}")
+
+            else:
+                print("\nVirusTotal lookup skipped.")
+
 
         elif choice == "3":
             print("\nExiting Sentinel Security. Stay safe!")
