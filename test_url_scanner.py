@@ -61,5 +61,20 @@ class TestURLScanner(unittest.TestCase):
         )
         self.assertIn("user information", result)
         
+    
+    def test_invalid_hostname_characters(self):
+        """Reject invalid characters in a hostname."""
+        result = self.run_scan("https://bad_host.example")
+        self.assertIn("Invalid hostname characters", result)
+        
+    def test_valid_hyphenated_hostname(self):
+        """Accept valid hyphenated hostnames."""
+        result = self.run_scan("https://my-site.example")
+        self.assertNotIn("Invalid hostname characters", result)
+        self.assertIn(
+            "No immediate security concerns detected", 
+            result     
+            )
+
 if __name__ == "__main__":
     unittest.main()

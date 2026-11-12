@@ -12,6 +12,7 @@ determinations of whether a website is safe or malicious.
 """
 
 import ipaddress
+import re
 from urllib.parse import urlsplit
 
 
@@ -53,6 +54,14 @@ def scan_url(url):
         return
     
     labels = ascii_hostname.rstrip(".").split(".")
+     # Reject invalid characters in DNS hostname labels
+    if any(
+        not re.fullmatch(r"[A-Za-z0-9-]+", label)
+        for label in labels
+    ):
+        print("STATUS: Invalid hostname characters")
+        return
+    
     if any(
         not label
         or len(label) > 63
