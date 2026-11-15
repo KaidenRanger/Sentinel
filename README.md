@@ -35,7 +35,7 @@ URL scanning is static and does not visit the target website.
 - Requests user permission before each lookup.
 - Handles missing API keys, unavailable reports, rate limits, and network errors.
 
-**Note:** Live API verification is pending. The integration has been tested with mocked API responses.
+**Note:** VirusTotal API v3 integration has been verified with a successful live URL reputation lookup. Automated tests use mocked API responses.
 
 VirusTotal lookups require an API key and transmit URL information to VirusTotal. Avoid submitting private or sensitive URLs.
 
