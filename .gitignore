@@ -17,6 +17,8 @@ __pycache__/
 # Temporary files
 *.log
 
+scan_history.json
+
 
 # Sentinel Security - Git Exclusion Rules
 #

@@ -1,20 +1,28 @@
+
 """
 Sentinel Security - Main Application
-Version: 0.5.0
+Version: 0.6.0
 
 Command-line cybersecurity tool for file hash scanning,
-static URL analysis, and optional VirusTotal reputation lookups.
-
-Provides an interactive menu and requests user permission
-before contacting VirusTotal.
+static URL analysis, optional VirusTotal reputation lookups,
+and local scan history.
 """
-
 
 from pathlib import Path
 
 from scanner import scan_file
 from url_scanner import scan_url
 from threat_intel import check_url_reputation
+from scan_history import get_scan_history, save_scan
+
+
+def record_scan(scan_type, target, status):
+    """Save a scan without interrupting the scanner on write errors."""
+    try:
+        save_scan(scan_type, target, status)
+        print("[INFO] Scan saved to history.")
+    except (OSError, TypeError, ValueError) as error:
+        print(f"[WARNING] Could not save scan history: {error}")
 
 
 def main():
@@ -24,15 +32,16 @@ def main():
     print("       SENTINEL SECURITY        ")
     print("================================")
     print("File and URL Threat Scanner")
-    print("Version: 0.5.0")
+    print("Version: 0.6.0")
 
     while True:
         print("\n===== MAIN MENU =====")
         print("1. Scan a File")
         print("2. Scan a URL")
-        print("3. Exit Sentinel")
+        print("3. View Scan History")
+        print("4. Exit Sentinel")
 
-        choice = input("\nSelect an option (1-3): ").strip()
+        choice = input("\nSelect an option (1-4): ").strip()
 
         if choice == "1":
             file_path = input(
@@ -48,7 +57,15 @@ def main():
                 continue
 
             try:
-                scan_file(file_path)
+                result = scan_file(file_path)
+
+                if result is not None:
+                    record_scan(
+                        "file",
+                        result["file_path"],
+                        result["status"]
+                    )
+
             except (OSError, ValueError, KeyError) as error:
                 print(f"\n[ERROR] File scan failed: {error}")
 
@@ -65,7 +82,8 @@ def main():
             if not valid_url:
                 continue
 
-            # Ask permission before contacting VirusTotal
+            status = "Static URL analysis completed; review console warnings"
+
             permission = input(
                 "\nCheck this URL with VirusTotal? (y/n): "
             ).strip().lower()
@@ -90,20 +108,50 @@ def main():
                     else:
                         print("No malicious detections in this report.")
 
+                    status = (
+                        "Static analysis completed; "
+                        f"VirusTotal malicious={result['malicious']}, "
+                        f"suspicious={result['suspicious']}, "
+                        f"harmless={result['harmless']}, "
+                        f"undetected={result['undetected']}"
+                    )
+
                 else:
                     print(f"\n[INFO] {result['message']}")
+                    status = (
+                        "Static analysis completed; "
+                        f"VirusTotal lookup: {result['status']}"
+                    )
 
             else:
                 print("\nVirusTotal lookup skipped.")
 
+            record_scan("url", url, status)
 
         elif choice == "3":
+            print("\n===== SCAN HISTORY =====")
+
+            history = get_scan_history()
+
+            if not history:
+                print("No previous scans recorded.")
+            else:
+                for index, record in enumerate(history, start=1):
+                    print(f"\nScan #{index}")
+                    print(f"Time: {record['timestamp']}")
+                    print(f"Type: {record['scan_type']}")
+                    print(f"Target: {record['target']}")
+                    print(f"Status: {record['status']}")
+
+            print("========================")
+
+        elif choice == "4":
             print("\nExiting Sentinel Security. Stay safe!")
             break
 
         else:
             print("\n[ERROR] Invalid selection.")
-            print("Please enter 1, 2, or 3.")
+            print("Please enter 1, 2, 3, or 4.")
 
 
 if __name__ == "__main__":

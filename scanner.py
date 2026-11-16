@@ -1,6 +1,6 @@
 """
 Sentinel Security - File Scanning Engine
-Version: 0.5.0
+Version: 0.6.0
 
 Calculates SHA-256 file hashes and compares them against
 a local JSON database of known threat hashes.
@@ -8,7 +8,6 @@ a local JSON database of known threat hashes.
 This module performs local file analysis and does not
 upload files to external services.
 """
-
 
 import hashlib
 import json
@@ -21,7 +20,7 @@ def calculate_sha256(file_path):
     sha256 = hashlib.sha256()
 
     with open(file_path, "rb") as file:
-        while chunk := file.read(65536):  # Read the file in 64KB chunks
+        while chunk := file.read(65536):
             sha256.update(chunk)
 
     return sha256.hexdigest()
@@ -41,13 +40,13 @@ def check_malware_hash(file_hash):
 
 
 def scan_file(file_path):
-    """Scan a file and check for known threats."""
+    """Scan a file and return its results."""
 
     path = Path(file_path)
 
     if not path.is_file():
         print("Error: File does not exist.")
-        return
+        return None
 
     file_hash = calculate_sha256(path)
     threat = check_malware_hash(file_hash)
@@ -58,10 +57,18 @@ def scan_file(file_path):
     print(f"SHA-256: {file_hash}")
     print("==============================\n")
 
-
     if threat:
-            print(f"STATUS: THREAT DETECTED ({threat})")
+        status = f"THREAT DETECTED ({threat})"
     else:
-            print("STATUS: No known threats detected")
+        status = "No known threats detected"
 
+    print(f"STATUS: {status}")
     print("==============================\n")
+
+    return {
+        "file_name": path.name,
+        "file_path": str(path),
+        "sha256": file_hash,
+        "threat": threat,
+        "status": status
+    }
