@@ -29,7 +29,7 @@ def calculate_sha256(file_path):
 def check_malware_hash(file_hash):
     """Check a hash against our local threat database."""
 
-    database_path = Path(__file__).resolve().parent / "hashes.json"
+    database_path = Path(__file__).resolve().parent.parent / "data" / "hashes.json"
 
     with open(database_path, "r", encoding="utf-8") as database:
         data = json.load(database)

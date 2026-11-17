@@ -17,7 +17,7 @@ import re
 from urllib.parse import urlsplit
 
 
-def scan_url(url):
+def scan_url(url, return_details=False):
     """Analyze a URL for basic security risk indicators."""
 
     url = url.strip()
@@ -123,5 +123,16 @@ def scan_url(url):
         print("\nSTATUS: No suspicious URL indicators detected")
 
     print("============================\n")
+
+    if return_details:
+        return {
+            "valid": True,
+            "status": (
+                "REVIEW RECOMMENDED"
+                if warnings
+                else "No suspicious URL indicators detected"
+            ),
+            "warnings": warnings
+        }
 
     return True

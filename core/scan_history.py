@@ -10,8 +10,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 from pathlib import Path
 
-HISTORY_FILE = Path(__file__).resolve().parent / "scan_history.json"
-
+HISTORY_FILE = Path(__file__).resolve().parent.parent / "data" / "scan_history.json"
 
 def save_scan(scan_type, target, status):
     """Save a completed scan to the history file."""

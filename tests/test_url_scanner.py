@@ -10,7 +10,7 @@ import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 
-from url_scanner import scan_url
+from core.url_scanner import scan_url
 
 
 class TestURLScanner(unittest.TestCase):
@@ -94,6 +94,43 @@ class TestURLScanner(unittest.TestCase):
         result = scan_url("http://192.168.1.1/login")
 
         self.assertTrue(result)
+    def test_detailed_safe_result(self):
+         """Check detailed results for a normal HTTPS URL."""
+
+         result = scan_url(
+            "https://example.com",
+            return_details=True
+        )
+
+         self.assertIsInstance(result, dict)
+         self.assertTrue(result["valid"])
+         self.assertEqual(
+             result["status"],
+             "No suspicious URL indicators detected"
+         )
+         self.assertEqual(result["warnings"], [])
+
+    def test_detailed_suspicious_url_result(self):
+        """Check detailed results for a suspicious URL."""
+
+        result = scan_url(
+            "http://192.168.1.1/login",
+            return_details=True
+        )
+        self.assertIsInstance(result, dict)
+        self.assertTrue(result["valid"])
+        self.assertEqual(
+            result["status"],
+            "REVIEW RECOMMENDED"
+        )
+        self.assertIn(
+             "URL does not use HTTPS (unencrypted connection)",
+             result["warnings"]
+        )
+        self.assertIn(
+            "URL uses an IP address instead of a domain name",
+            result["warnings"]
+        )
 
 
 

@@ -11,7 +11,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from scan_history import save_scan, get_scan_history
+from core.scan_history import save_scan, get_scan_history
 
 class TestScanHistory(unittest.TestCase):
 
@@ -21,7 +21,7 @@ class TestScanHistory(unittest.TestCase):
         self.history_file = Path(self.temp_dir.name) / "history.json"
 
         self.history_patch = patch(
-            "scan_history.HISTORY_FILE",
+            "core.scan_history.HISTORY_FILE",
             self.history_file
         )
         self.history_patch.start()

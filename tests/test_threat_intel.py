@@ -11,7 +11,7 @@ import json
 from unittest.mock import patch
 from urllib.error import HTTPError, URLError
 
-from threat_intel import check_url_reputation
+from core.threat_intel import check_url_reputation
 
 
 class TestThreatIntel(unittest.TestCase):
@@ -26,7 +26,7 @@ class TestThreatIntel(unittest.TestCase):
         self.assertEqual(result["status"], "error")
         self.assertIn("API key", result["message"])
 
-    @patch("threat_intel.urlopen")
+    @patch("core.threat_intel.urlopen")
     @patch.dict(
         "os.environ",
         {"VT_API_KEY": "fake_test_key"}
@@ -45,7 +45,7 @@ class TestThreatIntel(unittest.TestCase):
             "Network error or request timed out", result["message"]
         )
 
-    @patch("threat_intel.urlopen")
+    @patch("core.threat_intel.urlopen")
     @patch.dict(
         "os.environ",
         {"VT_API_KEY": "fake_test_key"}
@@ -77,7 +77,7 @@ class TestThreatIntel(unittest.TestCase):
          self.assertEqual(result["harmless"], 65)
          self.assertEqual(result["undetected"], 4)
 
-    @patch("threat_intel.urlopen")
+    @patch("core.threat_intel.urlopen")
     @patch.dict(
         "os.environ",
         {"VT_API_KEY": "fake_test_key"}
@@ -99,7 +99,7 @@ class TestThreatIntel(unittest.TestCase):
         self.assertIn("report", result["message"].lower())
         mock_urlopen.side_effect.close()
 
-    @patch("threat_intel.urlopen")
+    @patch("core.threat_intel.urlopen")
     @patch.dict(
         "os.environ",
         {"VT_API_KEY": "fake_test_key"}

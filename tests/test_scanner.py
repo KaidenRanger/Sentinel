@@ -8,12 +8,12 @@ Automated tests for local file hash scanning.
 import unittest
 from unittest.mock import patch
 
-from scanner import check_malware_hash
+from core.scanner import check_malware_hash
 
 
 class TestSentinelScanner(unittest.TestCase):
 
-    @patch("scanner.Path")
+    @patch("core.scanner.Path")
     @patch("builtins.open")
     def test_known_threat(self, mock_open_file, mock_path):
         """Check that known malicious hashes are detected."""

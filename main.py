@@ -1,28 +1,26 @@
-
 """
 Sentinel Security - Main Application
 Version: 0.6.0
 
-Command-line cybersecurity tool for file hash scanning,
-static URL analysis, optional VirusTotal reputation lookups,
-and local scan history.
+File scanning, static URL analysis, VirusTotal reputation
+lookups, and local scan history.
 """
 
 from pathlib import Path
 
-from scanner import scan_file
-from url_scanner import scan_url
-from threat_intel import check_url_reputation
-from scan_history import get_scan_history, save_scan
+from core.scanner import scan_file
+from core.url_scanner import scan_url
+from core.threat_intel import check_url_reputation
+from core.scan_history import get_scan_history, save_scan
 
 
 def record_scan(scan_type, target, status):
-    """Save a scan without interrupting the scanner on write errors."""
+    """Save scan results without interrupting the scanner."""
     try:
         save_scan(scan_type, target, status)
         print("[INFO] Scan saved to history.")
     except (OSError, TypeError, ValueError) as error:
-        print(f"[WARNING] Could not save scan history: {error}")
+        print(f"[WARNING] Could not save history: {error}")
 
 
 def main():
@@ -77,12 +75,17 @@ def main():
             if url.lower() == "back":
                 continue
 
-            valid_url = scan_url(url)
+            result = scan_url(url, return_details=True)
 
-            if not valid_url:
+            if not result:
                 continue
 
-            status = "Static URL analysis completed; review console warnings"
+            status = result["status"]
+
+            if result["warnings"]:
+                status += " | Warnings: " + "; ".join(
+                    result["warnings"]
+                )
 
             permission = input(
                 "\nCheck this URL with VirusTotal? (y/n): "
@@ -91,36 +94,35 @@ def main():
             if permission in ("y", "yes"):
                 print("\nContacting VirusTotal...")
 
-                result = check_url_reputation(url)
+                vt_result = check_url_reputation(url)
 
-                if result["status"] == "success":
+                if vt_result["status"] == "success":
                     print("\n===== VIRUSTOTAL REPORT =====")
-                    print(f"Malicious: {result['malicious']}")
-                    print(f"Suspicious: {result['suspicious']}")
-                    print(f"Harmless: {result['harmless']}")
-                    print(f"Undetected: {result['undetected']}")
+                    print(f"Malicious: {vt_result['malicious']}")
+                    print(f"Suspicious: {vt_result['suspicious']}")
+                    print(f"Harmless: {vt_result['harmless']}")
+                    print(f"Undetected: {vt_result['undetected']}")
                     print("=============================")
 
-                    if result["malicious"] > 0:
+                    if vt_result["malicious"] > 0:
                         print("[WARNING] Malicious detections reported.")
-                    elif result["suspicious"] > 0:
+                    elif vt_result["suspicious"] > 0:
                         print("[WARNING] Suspicious detections reported.")
                     else:
                         print("No malicious detections in this report.")
 
-                    status = (
-                        "Static analysis completed; "
-                        f"VirusTotal malicious={result['malicious']}, "
-                        f"suspicious={result['suspicious']}, "
-                        f"harmless={result['harmless']}, "
-                        f"undetected={result['undetected']}"
+                    status += (
+                        " | VirusTotal: "
+                        f"malicious={vt_result['malicious']}, "
+                        f"suspicious={vt_result['suspicious']}, "
+                        f"harmless={vt_result['harmless']}, "
+                        f"undetected={vt_result['undetected']}"
                     )
 
                 else:
-                    print(f"\n[INFO] {result['message']}")
-                    status = (
-                        "Static analysis completed; "
-                        f"VirusTotal lookup: {result['status']}"
+                    print(f"\n[INFO] {vt_result['message']}")
+                    status += (
+                        f" | VirusTotal lookup: {vt_result['status']}"
                     )
 
             else:
@@ -131,7 +133,11 @@ def main():
         elif choice == "3":
             print("\n===== SCAN HISTORY =====")
 
-            history = get_scan_history()
+            try:
+                history = get_scan_history()
+            except OSError as error:
+                print(f"[ERROR] Could not read history: {error}")
+                continue
 
             if not history:
                 print("No previous scans recorded.")
