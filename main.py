@@ -1,3 +1,4 @@
+
 """
 Sentinel Security - Main Application
 Version: 0.6.0
@@ -11,8 +12,11 @@ from pathlib import Path
 from core.scanner import scan_file
 from core.url_scanner import scan_url
 from core.threat_intel import check_url_reputation
-from core.scan_history import get_scan_history, save_scan
-
+from core.scan_history import (
+    get_scan_history,
+    save_scan,
+    clear_scan_history,
+)
 
 def record_scan(scan_type, target, status):
     """Save scan results without interrupting the scanner."""
@@ -21,7 +25,6 @@ def record_scan(scan_type, target, status):
         print("[INFO] Scan saved to history.")
     except (OSError, TypeError, ValueError) as error:
         print(f"[WARNING] Could not save history: {error}")
-
 
 def main():
     """Run the Sentinel Security application."""
@@ -37,9 +40,10 @@ def main():
         print("1. Scan a File")
         print("2. Scan a URL")
         print("3. View Scan History")
-        print("4. Exit Sentinel")
+        print("4. Clear Scan History")
+        print("5. Exit Sentinel")
 
-        choice = input("\nSelect an option (1-4): ").strip()
+        choice = input("\nSelect an option (1-5): ").strip()
 
         if choice == "1":
             file_path = input(
@@ -152,12 +156,32 @@ def main():
             print("========================")
 
         elif choice == "4":
+            print("\n===== CLEAR SCAN HISTORY =====")
+            print(
+                "WARNING: This will permanently delete "
+                "all saved scan history."
+            )
+
+            confirmation = input(
+                "Type YES to confirm, or anything else to cancel: "
+            ).strip()
+
+            if confirmation != "YES":
+                print("\n[INFO] History deletion canceled.")
+                continue
+
+            if clear_scan_history():
+                print("\n[SUCCESS] Scan history cleared.")
+            else:
+                print("\n[ERROR] Could not clear scan history.")
+
+        elif choice == "5":
             print("\nExiting Sentinel Security. Stay safe!")
             break
 
         else:
             print("\n[ERROR] Invalid selection.")
-            print("Please enter 1, 2, 3, or 4.")
+            print("Please enter 1, 2, 3, 4, or 5.")
 
 
 if __name__ == "__main__":

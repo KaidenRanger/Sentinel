@@ -55,4 +55,17 @@ def get_scan_history():
         return history if isinstance(history, list) else []
 
     except (json.JSONDecodeError, OSError):
-        return[]
+            return[]
+
+def clear_scan_history():
+    """Delete all saved scan history records."""
+
+    if not HISTORY_FILE.exists():
+        return True
+
+    try:
+        HISTORY_FILE.unlink()
+        return True
+
+    except OSError:
+        return False

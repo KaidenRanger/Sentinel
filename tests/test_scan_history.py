@@ -11,7 +11,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from core.scan_history import save_scan, get_scan_history
+from core.scan_history import save_scan, get_scan_history, clear_scan_history
 
 class TestScanHistory(unittest.TestCase):
 
@@ -65,6 +65,30 @@ class TestScanHistory(unittest.TestCase):
         history = get_scan_history()
 
         self.assertEqual(history, [])
+
+    def test_clear_scan_history(self):
+        """Verify that clearing history deletes saved records."""
+
+        save_scan("file", "test.txt", "No known threats")
+
+        self.assertTrue(self.history_file.exists())
+
+        with patch("core.scan_history.HISTORY_FILE", self.history_file):
+            result = clear_scan_history()
+
+        self.assertTrue(result)
+        self.assertFalse(self.history_file.exists())
+        self.assertEqual(get_scan_history(), [])
+
+    def test_clear_empty_history(self):
+        """Verify that clearing nonexistent history succeeds."""
+
+        self.assertFalse(self.history_file.exists())
+
+        result = clear_scan_history()
+
+        self.assertTrue(result)
+        self.assertEqual(get_scan_history(), [])
 
 if __name__ == "__main__":
     unittest.main()
