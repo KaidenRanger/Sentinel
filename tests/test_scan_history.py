@@ -11,7 +11,12 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from core.scan_history import save_scan, get_scan_history, clear_scan_history
+from core.scan_history import (
+    save_scan,
+    get_scan_history,
+    clear_scan_history,
+    sanitize_url,
+)
 
 class TestScanHistory(unittest.TestCase):
 
@@ -89,6 +94,83 @@ class TestScanHistory(unittest.TestCase):
 
         self.assertTrue(result)
         self.assertEqual(get_scan_history(), [])
+
+    def test_sanitize_query_parameters(self):
+        """Verify that sensitive query parameters are removed."""
+
+        url =  "https://example.com/login?token=abc123&api_key=secret456"
+
+        self.assertEqual(
+            sanitize_url(url),
+            "https://example.com/login"
+        )
+
+    def test_sanitize_fragment(self):
+        """Verify that URL fragments are removed."""
+
+        url = "https://example.com/login#session123"
+
+        self.assertEqual(
+            sanitize_url(url),
+            "https://example.com/login"
+        )
+
+    def test_sanitize_credentials(self):
+        """Verify that embedded credentials are removed."""
+
+        url = "https://admin:password@example.com/login"
+
+        self.assertEqual(
+            sanitize_url(url),
+            "https://example.com/login"
+        )
+
+    def test_sanitize_normal_url(self):
+        """Verify that normal URLs remain unchanged."""
+
+        url = "https://example.com:8443/login"
+
+        self.assertEqual(sanitize_url(url), url)
+
+    def test_sanitize_invalid_url(self):
+        """Verify that invalid URLs are not stored directly."""
+
+        self.assertEqual(
+            sanitize_url("not-a-valid-url"),
+            "[Invalid URL]"
+        )
+
+    def test_save_sanitized_url(self):
+        """Verify that sensitive URL data is not written to disk."""
+
+        url = (
+            "https://admin:password@example.com/login"
+            "?token=abc123#session456"
+        )
+
+        record = save_scan("url", url, "No suspicious indicators")
+
+        self.assertEqual(
+            record["target"],
+            "https://example.com/login"
+        )
+
+        saved_content = self.history_file.read_text(
+            encoding="utf-8"
+        )
+
+        for secret in ("admin", "password", "abc123", "session456"):
+            self.assertNotIn(secret, saved_content)
+
+    def test_file_target_unchanged(self):
+        """Verify that file scan targets are not sanitized."""
+
+        target = "test_file.txt"
+
+        record = save_scan("file", target, "no known threats")
+
+        self.assertEqual(record["target"], target)
+        self.assertEqual(get_scan_history()[0]["target"], target)
 
 if __name__ == "__main__":
     unittest.main()
