@@ -172,5 +172,105 @@ class TestScanHistory(unittest.TestCase):
         self.assertEqual(record["target"], target)
         self.assertEqual(get_scan_history()[0]["target"], target)
 
+    def test_save_scan_preserves_corrupted_history(self):
+         """Verify corrupted JSON is not overwritten."""
+         original_content = "{invalid json"
+
+         self.history_file.write_text(
+             original_content,encoding="utf-8"
+         )
+
+         with self.assertRaises(ValueError):
+             save_scan("file", "example.txt", "Clean")
+
+         self.assertEqual(
+             self.history_file.read_text(encoding="utf-8"),
+             original_content
+         )
+
+    def test_save_scan_preserves_invalid_history_format(self):
+        """Verify an invalid history format is not overwritten."""
+        original_content = '{"invalid": "format"}'
+
+        self.history_file.write_text(
+            original_content, encoding="utf-8"
+        )
+
+        with self.assertRaises(ValueError):
+            save_scan("file", "example.txt", "Clean")
+
+        self.assertEqual(
+            self.history_file.read_text(encoding="utf-8"),
+            original_content
+        )
+
+    def test_save_scan_preserves_history_on_read_error(self):
+        """Verify a read error does not cause data loss."""
+        original_content = "[]"
+
+        self.history_file.write_text(
+            original_content, encoding="utf-8"
+        )
+
+        with patch(
+            "pathlib.Path.open",
+            side_effect=OSError("Simulated read error")
+        ):
+            with self.assertRaises(ValueError):
+                save_scan("file", "example.txt", "Clean")
+
+        self.assertEqual(
+            self.history_file.read_text(encoding="utf-8"),
+            original_content
+        )
+
+    def test_atomic_write_success(self):
+        """Verify successful writes preserve previous records."""
+        save_scan("file", "first.txt", "Clean")
+        save_scan("file", "second.txt", "Clean")
+
+        history = get_scan_history()
+
+        self.assertEqual(len(history), 2)
+        self.assertEqual(history[0]["target"], "first.txt")
+        self.assertEqual(history[1]["target"], "second.txt")
+
+    def test_atomic_write_preserves_history_on_failure(self):
+        """Verify a failed write preserves existing history."""
+        save_scan("file", "original.txt", "Clean")
+
+        original_content = self.history_file.read_text(
+            encoding="utf-8"
+        )
+
+        with patch(
+            "core.scan_history.os.replace",
+            side_effect=OSError("Simulated replacement failure")
+        ):
+            with self.assertRaises(OSError):
+                save_scan("file", "new.txt", "Clean")
+
+        self.assertEqual(
+            self.history_file.read_text(encoding="utf-8"),
+            original_content
+        )
+
+    def test_atomic_write_cleans_temporary_files(self):
+        """Verify temporary files are removed after failure."""
+        save_scan("file", "original.txt", "Clean")
+
+        with patch(
+            "core.scan_history.os.replace",
+            side_effect=OSError("Simulated replacement failure")
+        ):
+            with self.assertRaises(OSError):
+                save_scan("file", "new.txt", "Clean")
+
+        temporary_files = list(
+            self.history_file.parent.glob(".scan_history_*.tmp")
+        )
+
+        self.assertEqual(temporary_files, [])
+
 if __name__ == "__main__":
     unittest.main()

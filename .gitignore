@@ -18,6 +18,7 @@ __pycache__/
 *.log
 
 scan_history.json
+.scan_history_*.tmp
 
 
 # Sentinel Security - Git Exclusion Rules

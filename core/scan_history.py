@@ -6,6 +6,8 @@ Stores scan records in a local JSON file.
 """
 
 import json
+import os
+import tempfile
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from pathlib import Path
@@ -34,15 +36,37 @@ def save_scan(scan_type, target, status):
                 history = json.load(file)
 
             if not isinstance(history, list):
-                history = []
+                raise ValueError("Invalid scan history format.")
 
-        except (json.JSONDecodeError, OSError):
-            history = []
+        except (json.JSONDecodeError, OSError) as error:
+            raise ValueError(
+                "Existing scan history could not be read. "
+                "History has been preserved."
+            ) from error
 
     history.append(record)
 
-    with HISTORY_FILE.open("w", encoding="utf-8") as file:
-        json.dump(history, file, indent=4)
+    temp_path = None
+
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=HISTORY_FILE.parent,
+            prefix=".scan_history_",
+            suffix=".tmp",
+            delete=False
+        ) as file:
+            temp_path = Path(file.name)
+            json.dump(history, file, indent=4)
+            file.flush()
+            os.fsync(file.fileno())
+
+        os.replace(temp_path, HISTORY_FILE)
+
+    finally:
+        if temp_path is not None:
+            temp_path.unlink(missing_ok=True)
 
     return record
 
@@ -50,7 +74,7 @@ def get_scan_history():
     """Return previously saved scan records."""
 
     if not HISTORY_FILE.exists():
-        return[]
+        return []
 
     try:
         with HISTORY_FILE.open("r", encoding="utf-8") as file:
@@ -59,7 +83,7 @@ def get_scan_history():
         return history if isinstance(history, list) else []
 
     except (json.JSONDecodeError, OSError):
-            return[]
+        return []
 
 def clear_scan_history():
     """Delete all saved scan history records."""
